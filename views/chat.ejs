@@ -39,11 +39,11 @@
       const storedTime = localStorage.getItem('myKeyExpires');
 
       if(obj == null){
-          window.location.assign('http://localhost:5000');
+          window.location.assign('https://chat-gpt.cyclic.app');
       }else{
           // const storedDate = new Date(Date.parse(storedTime)); 
           if (now.getTime() > storedTime) {
-            window.location.assign('http://localhost:5000');
+            window.location.assign('https://chat-gpt.cyclic.app');
          }
       }
       function loader(element) {
@@ -107,7 +107,7 @@
          console.log(data.get('apiKey'))
          
          var ajax = new XMLHttpRequest();
-         ajax.open("POST","http://localhost:5000/add/chat",true);
+         ajax.open("POST","https://chat-gpt.cyclic.app/add/chat",true);
          
          ajax.onreadystatechange = function(){
             if(this.readyState == 4 && this.status== 200 ){

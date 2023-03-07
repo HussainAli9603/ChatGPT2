@@ -40,7 +40,7 @@
     const addAPI = async (e) => {
          e.preventDefault()
          var ajax = new XMLHttpRequest();
-         ajax.open("POST","http://localhost:5000/add/api",true);
+         ajax.open("POST","https://chat-gpt.cyclic.app/add/api",true);
          
          ajax.onreadystatechange = function(){
           console.log(this.responseText)
@@ -49,7 +49,7 @@
                 localStorage.setItem('myKey', JSON.stringify(response.apiKey));
                 localStorage.setItem('myKeyExpires', Date.now() + 60 * 24 * 60 * 60 * 1000); //2 months
 
-                window.location.assign('http://localhost:5000/chat');
+                window.location.assign('https://chat-gpt.cyclic.app/chat');
     
          }else{
           const err = response.text()
