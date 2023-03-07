@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <link rel="icon" type="image/svg+xml" href="favicon.ico" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT | Home</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/style2.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  </head>
+  <body>
+    <div id="app">
+      <div id="chat_container"></div>
+
+      <form>
+        <textarea name="prompt" rows="1" cols="1" placeholder="Write Question Here..."></textarea>
+        <input type="hidden" name="apiKey" id="api" value="">
+        <button type="submit" name="submit"><img src="assets/send.svg" alt="send" /></button>
+      </form>
+    </div>
+
+    <!-- <script type="module" src="/script2.js"></script> -->
+
+    <script>
+
+      const form = document.querySelector('form')
+
+      var chatContainer = document.querySelector('#chat_container')
+
+      let loadInterval
+
+      var obj = JSON.parse(localStorage.getItem('myKey'));
+      var ch = document.querySelector('#api').value = obj;
+      // Get the current time
+      const now = new Date();
+      // Get the time from local storage
+      const storedTime = localStorage.getItem('myKeyExpires');
+
+      if(obj == null){
+          window.location.assign('http://localhost:5000');
+      }else{
+          // const storedDate = new Date(Date.parse(storedTime)); 
+          if (now.getTime() > storedTime) {
+            window.location.assign('http://localhost:5000');
+         }
+      }
+      function loader(element) {
+        element.textContent = ''
+
+        loadInterval = setInterval(() => {
+            // Update the text content of the loading indicator
+            element.textContent += '.';
+
+            // If the loading indicator has reached three dots, reset it
+            if (element.textContent === '....') {
+                element.textContent = '';
+            }
+        }, 300);
+      } 
+
+      function typeText(element, text) {
+          let index = 0
+
+          let interval = setInterval(() => {
+              if (index < text.length) {
+                  element.innerHTML += text.charAt(index)
+                  index++
+              } else {
+                  clearInterval(interval)
+              }
+          }, 20)
+      }
+      // generate unique ID for each message div of bot
+      // necessary for typing text effect for that specific reply
+      // without unique ID, typing text will work on every element
+      function generateUniqueId() {
+          const timestamp = Date.now();
+          const randomNumber = Math.random();
+          const hexadecimalString = randomNumber.toString(16);
+
+          return `id-${timestamp}-${hexadecimalString}`;
+      }
+      function chatStripe(isAi, value, uniqueId) {
+          return (
+              `
+              <div class="wrapper ${isAi && 'ai'}">
+                  <div class="chat">
+                      <div class="profile">
+                          <img 
+                            src=${isAi ? './assets/bot.svg' : './assets/user.svg'} 
+                            alt="${isAi ? 'bot' : 'user'}" 
+                          />
+                      </div>
+                      <div class="message" id=${uniqueId}>${value}</div>
+                  </div>
+              </div>
+
+          `
+          )
+      }
+      const letChat = async (e) => {
+         e.preventDefault()
+         const data = new FormData(form)
+         console.log(data.get('prompt'))
+         console.log(data.get('apiKey'))
+         
+         var ajax = new XMLHttpRequest();
+         ajax.open("POST","http://localhost:5000/add/chat",true);
+         
+         ajax.onreadystatechange = function(){
+            if(this.readyState == 4 && this.status== 200 ){
+                var response = JSON.parse(this.responseText);
+
+                console.log(chatStripe(false, data.get('prompt')))
+                 
+               // user's chatstripe
+               chatContainer.innerHTML += chatStripe(false, data.get('prompt'))
+               // to clear the textarea input 
+               form.reset()
+               // bot's chatstripe
+               const uniqueId = generateUniqueId()
+               chatContainer.innerHTML += chatStripe(true, " ", uniqueId)
+                // to focus scroll to the bottom 
+               chatContainer.scrollTop = chatContainer.scrollHeight;
+
+               // specific message div 
+               const messageDiv = document.getElementById(uniqueId)
+
+               // Retrieve the value from local storage
+               var value = localStorage.getItem('myKey');
+
+               messageDiv.innerHTML = "..."
+               loader(messageDiv)
+
+               clearInterval(loadInterval)
+               messageDiv.innerHTML = " "
+
+               const dataRes = response;
+               console.log(response)
+               const parsedData = dataRes.bot.trim() // trims any trailing spaces/'\n' 
+
+               typeText(messageDiv, parsedData)
+    
+         }else{
+          const err = response.text()
+          alert(err)
+         }
+       };
+    
+       ajax.send(new FormData(form));
+       return false;
+     }
+
+     form.addEventListener('submit', letChat)
+     form.addEventListener('keyup', (e) => {
+     if (e.keyCode === 13) {
+         letChat(e)
+       } 
+     }) 
+
+      
+    </script>
+  </body>
+</html>
